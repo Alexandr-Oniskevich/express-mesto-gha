@@ -20,7 +20,11 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => Card.findByIdAndRemove(req.params.cardId)
   .then((card) => {
-    res.send({ data: card });
+    if (card) {
+      res.send({ data: card });
+    } else {
+      res.status(404).send({ message: 'Карточка по указанному _id не найдена' });
+    }
   })
   .catch((error) => {
     if (error.name === 'CastError') {
@@ -36,7 +40,11 @@ const likeCard = (req, res) => Card.findByIdAndUpdate(
   { new: true },
 )
   .then((card) => {
-    res.send({ data: card });
+    if (card) {
+      res.send({ data: card });
+    } else {
+      res.status(404).send({ message: 'Карточка по указанному _id не найдена' });
+    }
   })
   .catch((error) => {
     if (error.name === 'CastError') {
@@ -52,7 +60,11 @@ const deleteLike = (req, res) => Card.findByIdAndUpdate(
   { new: true },
 )
   .then((card) => {
-    res.send({ data: card });
+    if (card) {
+      res.send({ data: card });
+    } else {
+      res.status(404).send({ message: 'Карточка по указанному _id не найдена' });
+    }
   })
   .catch((error) => {
     if (error.name === 'CastError') {
