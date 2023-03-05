@@ -46,7 +46,7 @@ const likeCard = (req, res) => Card.findByIdAndUpdate(
     if (card) {
       res.send({ data: card });
     } else {
-      res.status(ERROR_CODE).send({ message: 'Карточка по указанному _id не найдена' });
+      res.status(ERROR_NO_USER).send({ message: 'Карточка по указанному _id не найдена' });
     }
   })
   .catch((error) => {
@@ -66,7 +66,7 @@ const deleteLike = (req, res) => Card.findByIdAndUpdate(
     if (card) {
       res.send({ data: card });
     } else {
-      res.status(ERROR_CODE).send({ message: 'Карточка по указанному _id не найдена' });
+      res.status(ERROR_NO_USER).send({ message: 'Карточка по указанному _id не найдена' });
     }
   })
   .catch((error) => {
