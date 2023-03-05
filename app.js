@@ -6,7 +6,7 @@ const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 // Слушаем 3000 порт
 const { PORT = 3000 } = process.env;
-const { ERROR_CODE } = require('./utils/constants');
+const { ERROR_NO_USER } = require('./utils/constants');
 
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
@@ -37,7 +37,7 @@ app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
 
 app.use('*', (req, res) => {
-  res.status(ERROR_CODE).send({ message: 'Запрашиваемая страница не найдена' });
+  res.status(ERROR_NO_USER).send({ message: 'Запрашиваемая страница не найдена' });
 });
 
 app.listen(PORT, () => {
