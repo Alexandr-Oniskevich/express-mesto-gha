@@ -5,10 +5,16 @@ const getUsers = (req, res) => User.find({})
   .catch((error) => res.status(500).send(`Ошибка сервера: ${error}`));
 
 const getUsersId = (req, res) => User.findById(req.params.userId)
-  .then((user) => res.status(200).send(user))
+  .then((user) => {
+    if (user) {
+      res.send({ data: user });
+    } else {
+      res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+    }
+  })
   .catch((error) => {
     if (error.name === 'CastError') {
-      res.status(400).send({ message: 'Нет пользователя с таким ID' });
+      res.status(400).send({ message: 'Некорректный _id пользователя' });
     } else {
       res.status(500).send(`Ошибка сервера: ${error}`);
     }
