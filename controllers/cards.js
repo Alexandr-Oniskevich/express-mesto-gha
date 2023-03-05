@@ -5,7 +5,6 @@ const {
 } = require('../utils/constants');
 
 const getCard = (req, res) => Card.find({})
-  .populate(['owner', 'likes'])
   .then((card) => res.send({ data: card }))
   .catch(() => res.status(ERROR_SERVER).send('Ошибка сервера'));
 
