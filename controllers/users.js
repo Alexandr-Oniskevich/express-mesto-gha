@@ -6,7 +6,7 @@ const {
 
 const getUsers = (req, res) => User.find({})
   .then((users) => res.status(SUCCESS).send({ data: users }))
-  .catch((error) => res.status(ERROR_SERVER).send(`Ошибка сервера: ${error}`));
+  .catch(() => res.status(ERROR_SERVER).send('Ошибка сервера'));
 
 const getUsersId = (req, res) => User.findById(req.params.userId)
   .then((user) => {
@@ -20,7 +20,7 @@ const getUsersId = (req, res) => User.findById(req.params.userId)
     if (error.name === 'CastError') {
       res.status(ERROR_CODE).send({ message: 'Некорректный _id пользователя' });
     } else {
-      res.status(ERROR_SERVER).send(`Ошибка сервера: ${error}`);
+      res.status(ERROR_SERVER).send('Ошибка сервера');
     }
   });
 
@@ -32,7 +32,7 @@ const createUsers = (req, res) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         res.status(ERROR_CODE).send({ message: 'Переданы некорректные данные при создании пользователя' });
       } else {
-        res.status(ERROR_SERVER).send(`Ошибка сервера: ${error}`);
+        res.status(ERROR_SERVER).send('Ошибка сервера');
       }
     });
 };
@@ -48,7 +48,7 @@ const changeUserInfo = (req, res) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         res.status(ERROR_CODE).send({ message: 'Переданы некорректные данные при обновлении профиля' });
       } else {
-        res.status(ERROR_SERVER).send(`Ошибка сервера: ${error}`);
+        res.status(ERROR_SERVER).send('Ошибка сервера');
       }
     });
 };
@@ -64,7 +64,7 @@ const changeAvatar = (req, res) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         res.status(ERROR_CODE).send({ message: 'Переданы некорректные данные при обновлении аватара' });
       } else {
-        res.status(ERROR_SERVER).send(`Ошибка сервера: ${error}`);
+        res.status(ERROR_SERVER).send('Ошибка сервера');
       }
     });
 };
