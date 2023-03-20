@@ -2,22 +2,25 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { errors } = require('celebrate');
+const { celebrate, Joi } = require('celebrate');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
+const { createUsers, login } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 // Слушаем 3000 порт
 const { PORT = 3000 } = process.env;
-const { ERROR_NO_USER } = require('./utils/constants');
+const { ERROR_NOT_FOUND, ERROR_SERVER } = require('./utils/constants');
 
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 const app = express();
-
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Apply the rate limiting middleware to all requests
@@ -26,18 +29,59 @@ app.use(helmet());
 app.disable('x-powered-by');
 
 app.use(express.json());
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6402678bbf70b2361ac983cb',
-  };
-  next();
-});
 
-app.use('/users', usersRouter);
-app.use('/cards', cardsRouter);
+app.post(
+  '/signup',
+  celebrate({
+    body: Joi.object().keys({
+      name: Joi.string().min(2).max(30),
+      about: Joi.string().min(2).max(30),
+      avatar: Joi.string(),
+      email: Joi.string().min(4).email()
+        .required(),
+      password: Joi.string()
+        .required(),
+    }),
+  }),
+  createUsers,
+);
+
+app.post(
+  '/signin',
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().min(4).email()
+        .required(),
+      password: Joi.string()
+        .required(),
+    }),
+  }),
+
+  login,
+);
+
+app.use('/users', auth, usersRouter);
+app.use('/cards', auth, cardsRouter);
 
 app.use('*', (req, res) => {
-  res.status(ERROR_NO_USER).send({ message: 'Запрашиваемая страница не найдена' });
+  res.status(ERROR_NOT_FOUND).send({ message: 'Запрашиваемая страница не найдена' });
+});
+
+app.use(errors());
+
+app.use((err, req, res, next) => {
+  // если у ошибки нет статуса, выставляем 500
+  const { statusCode = err.status || ERROR_SERVER, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      // проверяем статус и выставляем сообщение в зависимости от него
+      message: statusCode === ERROR_SERVER
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+  return next();
 });
 
 app.listen(PORT, () => {
