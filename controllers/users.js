@@ -3,6 +3,7 @@ const jsonwebtoken = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../utils/errors/NotFoundError');
 const ErrorCode = require('../utils/errors/ErrorCode');
+const NotUsersFound = require('../utils/errors/NotUsersFound');
 const ConflictRequest = require('../utils/errors/ConflictRequest');
 const { SUCCESS, BASE_ERROR } = require('../utils/constants');
 
@@ -11,7 +12,7 @@ const login = (req, res, next) => {
   User
     .findOne({ email }).select('+password')
     // .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь не найден' }))
-    .orFail(() => next(new NotFoundError('Пользователь не найден')))
+    .orFail(() => next(new NotUsersFound('Пользователь не найден')))
     .then((user) => bcrypt.compare(password, user.password).then((matched) => {
       if (matched) {
         // аутентификация успешна
@@ -74,9 +75,9 @@ const createUsers = (req, res, next) => {
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         next(new ErrorCode('Переданы некорректные данные при создании пользователя'));
-        // res.status(ERROR_CODE).send({ message: 'Переданы некорректные данные при создании пользователя' });
       } else if (error.code === BASE_ERROR) {
-        next(new ConflictRequest('Пользователь с указанной почтой уже есть в системе'));
+        res.status(error.code).send({ message: 'Пользователь с указанной почтой уже есть в системе' });
+        // next(new ConflictRequest('Пользователь с указанной почтой уже есть в системе'));
       } else {
         next(error);
       }

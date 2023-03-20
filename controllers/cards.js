@@ -36,7 +36,7 @@ const deleteCard = (req, res, next) => Card.findById(req.params.cardId)
   })
   .catch((error) => {
     if (error.name === 'CastError') {
-      next(new ErrorCode('Переданы некорректные данные карточки'));
+      next(new NotFoundError('Переданы некорректные данные карточки'));
       // res.status(ERROR_CODE).send({ message: 'Переданы некорректные данные карточки' });
     } else {
       next(error);
