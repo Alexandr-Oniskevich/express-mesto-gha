@@ -1,6 +1,7 @@
 const Card = require('../models/card');
 const NotFoundError = require('../utils/errors/NotFoundError');
 const ErrorCode = require('../utils/errors/ErrorCode');
+const Forbidden = require('../utils/errors/Forbidden');
 
 const { SUCCESS } = require('../utils/constants');
 
@@ -25,7 +26,7 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => Card.findById(req.params.cardId)
   .then((card) => {
     if (!(card.owner.equals(req.user._id.toString()))) {
-      next(new ErrorCode('Чужая карточка не может быть удалена'));
+      next(new Forbidden('Чужая карточка не может быть удалена'));
       // return res.status(ERROR_CODE).send({ message: 'Чужая карточка не может быть удалена' });
     }
     if (!card) {
