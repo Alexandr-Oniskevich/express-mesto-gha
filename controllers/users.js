@@ -65,7 +65,6 @@ const createUsers = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-  // return User.create({ name, about, avatar, email, password: hash })
     .then((user) => res.status(SUCCESS).send({
       email: user.email,
       name: user.name,
@@ -76,8 +75,7 @@ const createUsers = (req, res, next) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         next(new ErrorCode('Переданы некорректные данные при создании пользователя'));
       } else if (error.code === BASE_ERROR) {
-        res.status(error.code).send({ message: 'Пользователь с указанной почтой уже есть в системе' });
-        // next(new ConflictRequest('Пользователь с указанной почтой уже есть в системе'));
+        next(new ConflictRequest('Пользователь с указанной почтой уже есть в системе'));
       } else {
         next(error);
       }
@@ -94,7 +92,6 @@ const changeUserInfo = (req, res, next) => {
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         next(new ErrorCode('Переданы некорректные данные при обновлении профиля'));
-        // res.status(ERROR_CODE).send({ message: 'Переданы некорректные данные при обновлении профиля' });
       } else {
         next(error);
       }
@@ -111,7 +108,6 @@ const changeAvatar = (req, res, next) => {
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         next(new ErrorCode('Переданы некорректные данные при обновлении аватара'));
-        // res.status(ERROR_CODE).send({ message: 'Переданы некорректные данные при обновлении аватара' });
       } else {
         next(error);
       }
