@@ -10,7 +10,8 @@ const { createUsers, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 // Слушаем 3000 порт
 const { PORT = 3000 } = process.env;
-const { ERROR_NOT_FOUND, ERROR_SERVER } = require('./utils/constants');
+const { ERROR_SERVER } = require('./utils/constants');
+const { NotFoundError } = require('./utils/errors/NotFoundError');
 
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
@@ -37,7 +38,7 @@ app.post(
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
       avatar: Joi.string().pattern(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*\/?$/),
-      email: Joi.string().min(4).email()
+      email: Joi.string().email()
         .required(),
       password: Joi.string()
         .required(),
@@ -50,7 +51,7 @@ app.post(
   '/signin',
   celebrate({
     body: Joi.object().keys({
-      email: Joi.string().min(4).email()
+      email: Joi.string().email()
         .required(),
       password: Joi.string()
         .required(),
@@ -63,8 +64,9 @@ app.post(
 app.use('/users', auth, usersRouter);
 app.use('/cards', auth, cardsRouter);
 
-app.use('*', (req, res) => {
-  res.status(ERROR_NOT_FOUND).send({ message: 'Запрашиваемая страница не найдена' });
+app.use('*', auth, (req, res, next) => {
+  next(new NotFoundError('Запрашиваемая страница не найдена'));
+  // res.status(ERROR_NOT_FOUND).send({ message: 'Запрашиваемая страница не найдена' });
 });
 
 app.use(errors());

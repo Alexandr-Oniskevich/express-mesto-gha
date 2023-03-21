@@ -1,6 +1,6 @@
 const Card = require('../models/card');
 const NotFoundError = require('../utils/errors/NotFoundError');
-const ErrorCode = require('../utils/errors/ErrorCode');
+const BadRequestError = require('../utils/errors/BadRequestError');
 const Forbidden = require('../utils/errors/Forbidden');
 
 const { SUCCESS } = require('../utils/constants');
@@ -15,7 +15,7 @@ const createCard = (req, res, next) => {
     .then((card) => res.status(SUCCESS).send({ data: card }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        next(new ErrorCode('Переданы некорректные данные при создании карточки'));
+        next(new BadRequestError('Переданы некорректные данные при создании карточки'));
       } else {
         next(error);
       }
@@ -26,12 +26,15 @@ const deleteCard = (req, res, next) => Card.findById(req.params.cardId)
   .then((card) => {
     if (!card) {
       next(new NotFoundError('Карточка по указанному _id не найдена'));
+      return;
     }
-    if (!(card.owner.equals(req.user._id.toString()))) {
+    if (!(card.owner.equals(req.user._id))) {
       next(new Forbidden('Чужая карточка не может быть удалена'));
-    } else {
-      card.deleteOne().then(() => res.send({ message: 'Карточка удалена' }));
+      return;
     }
+    card.deleteOne()
+      .then(() => res.send({ message: 'Карточка удалена' }))
+      .catch(next);
   })
   .catch(next);
 
@@ -49,7 +52,7 @@ const likeCard = (req, res, next) => Card.findByIdAndUpdate(
   })
   .catch((error) => {
     if (error.name === 'CastError') {
-      next(new ErrorCode('Переданы некорректные данные для постановки лайка'));
+      next(new BadRequestError('Переданы некорректные данные для постановки лайка'));
     } else {
       next(error);
     }
@@ -69,7 +72,7 @@ const deleteLike = (req, res, next) => Card.findByIdAndUpdate(
   })
   .catch((error) => {
     if (error.name === 'CastError') {
-      next(new ErrorCode('Переданы некорректные данные для снятии лайка'));
+      next(new BadRequestError('Переданы некорректные данные для снятии лайка'));
     } else {
       next(error);
     }

@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jsonwebtoken = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../utils/errors/NotFoundError');
-const ErrorCode = require('../utils/errors/ErrorCode');
+const BadRequestError = require('../utils/errors/BadRequestError');
 const NotUsersFound = require('../utils/errors/NotUsersFound');
 const ConflictRequest = require('../utils/errors/ConflictRequest');
 const { SUCCESS, BASE_ERROR } = require('../utils/constants');
@@ -11,16 +11,14 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
   User
     .findOne({ email }).select('+password')
-    // .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь не найден' }))
-    .orFail(() => next(new NotUsersFound('Пользователь не найден')))
+    .orFail(new NotUsersFound('Пользователь не найден'))
     .then((user) => bcrypt.compare(password, user.password).then((matched) => {
       if (matched) {
         // аутентификация успешна
         return user;
         // хеши не совпали — отклоняем промис
       }
-      return next(new NotFoundError('Пользователь не найден'));
-      // return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь не найден' });
+      return next(new NotFoundError('Неправильная почта или пароль'));
     }))
     .then((user) => {
       const jwt = jsonwebtoken.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
@@ -44,14 +42,12 @@ const getUsersId = (req, res, next) => User.findById(req.params.userId)
     if (user) {
       res.send({ data: user });
     } else {
-      // res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден' });
       next(new NotFoundError('Пользователь по указанному _id не найден'));
     }
   })
   .catch((error) => {
     if (error.name === 'CastError') {
-      next(new ErrorCode('Некорректный _id пользователя'));
-      // res.status(ERROR_CODE).send({ message: 'Некорректный _id пользователя' });
+      next(new BadRequestError('Некорректный _id пользователя'));
     } else {
       next(error);
     }
@@ -73,7 +69,7 @@ const createUsers = (req, res, next) => {
     }))
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
-        next(new ErrorCode('Переданы некорректные данные при создании пользователя'));
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       } else if (error.code === BASE_ERROR) {
         next(new ConflictRequest('Пользователь с указанной почтой уже есть в системе'));
       } else {
@@ -91,7 +87,7 @@ const changeUserInfo = (req, res, next) => {
     .then((userInfo) => res.send({ data: userInfo }))
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
-        next(new ErrorCode('Переданы некорректные данные при обновлении профиля'));
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
       } else {
         next(error);
       }
@@ -107,7 +103,7 @@ const changeAvatar = (req, res, next) => {
     .then((userAvatar) => res.send({ data: userAvatar }))
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
-        next(new ErrorCode('Переданы некорректные данные при обновлении аватара'));
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара'));
       } else {
         next(error);
       }
