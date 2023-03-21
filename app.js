@@ -11,7 +11,7 @@ const auth = require('./middlewares/auth');
 // Слушаем 3000 порт
 const { PORT = 3000 } = process.env;
 const { ERROR_SERVER } = require('./utils/constants');
-const { NotFoundError } = require('./utils/errors/NotFoundError');
+const NotFoundError = require('./utils/errors/NotFoundError');
 
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
@@ -66,7 +66,7 @@ app.use('/cards', auth, cardsRouter);
 
 app.use('*', auth, (req, res, next) => {
   next(new NotFoundError('Запрашиваемая страница не найдена'));
-  // res.status(ERROR_NOT_FOUND).send({ message: 'Запрашиваемая страница не найдена' });
+  // res.status(404).send({ message: 'Запрашиваемая страница не найдена' });
 });
 
 app.use(errors());
@@ -83,7 +83,7 @@ app.use((err, req, res, next) => {
         ? 'На сервере произошла ошибка'
         : message,
     });
-  return next();
+  next();
 });
 
 app.listen(PORT, () => {
