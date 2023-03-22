@@ -18,7 +18,7 @@ const login = (req, res, next) => {
         return user;
         // хеши не совпали — отклоняем промис
       }
-      return next(new NotFoundError('Неправильная почта или пароль'));
+      return next(new NotUsersFound('Неправильная почта или пароль'));
     }))
     .then((user) => {
       const jwt = jsonwebtoken.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
